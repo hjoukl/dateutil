@@ -16,7 +16,7 @@ except ImportError:
     from fractions import gcd
 
 from six import advance_iterator, integer_types
-from six.moves import _thread
+from six.moves import _thread, range
 import heapq
 
 # For warning about deprecation of until and count
@@ -707,7 +707,7 @@ class rrule(rrulebase):
             parts.append('INTERVAL=' + str(self._interval))
 
         if self._wkst:
-            parts.append('WKST=' + str(self._wkst))
+            parts.append('WKST=' + repr(weekday(self._wkst))[0:2])
 
         if self._count:
             parts.append('COUNT=' + str(self._count))
@@ -750,6 +750,21 @@ class rrule(rrulebase):
 
         output.append(';'.join(parts))
         return '\n'.join(output)
+
+    def replace(self, **kwargs):
+        """Return new rrule with same attributes except for those attributes given new
+           values by whichever keyword arguments are specified."""
+        new_kwargs = {"interval": self._interval,
+                      "count": self._count,
+                      "dtstart": self._dtstart,
+                      "freq": self._freq,
+                      "until": self._until,
+                      "wkst": self._wkst,
+                      "cache": False if self._cache is None else True }
+        new_kwargs.update(self._original_rule)
+        new_kwargs.update(kwargs)
+        return rrule(**new_kwargs)
+
 
     def _iter(self):
         year, month, day, hour, minute, second, weekday, yearday, _ = \
